@@ -46,6 +46,14 @@ public class Vertex {
      */
     public Vertex right;
 
+    /** The alignment between this vertex and its left/right descendant, given as the 
+     * sequence of states through a pair HMM, with this vertex as the ancestor
+     */
+    public int[] alignL;
+    public int[] alignR;
+    
+    public int descentOrder;
+    
     int length;					// sequence length
 //    AlignColumn first;			// first alignment column of Vertex
 //    AlignColumn last;			// last, virtual alignment column of Vertex (always present)
