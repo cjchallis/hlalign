@@ -89,7 +89,10 @@ public class PairDP {
 	}
 	
 	public int[] backward(){
-
+		
+		if(!forwardRun)
+			forward();
+		
 		double[] probs = new double[S];
 		
 		// state vector will always begin with match state corresponding to the start state
