@@ -38,7 +38,7 @@ public class MCMC {
 		double[] pY = ou.marginal(coords[1]);
 		double[][] pXY = ou.joint(coords[0], coords[1], 1);
 		
-		TKF91 tkf91 = new TKF91(.03, .033)
+		TKF91 tkf91 = new TKF91(.03, .033);
 		
 	}
 	

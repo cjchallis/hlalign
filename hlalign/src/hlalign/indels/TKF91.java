@@ -1,4 +1,4 @@
-package halign.indels;
+package hlalign.indels;
 
 import hlalign.base.IndelModel;
 
