@@ -2,13 +2,32 @@ package hlalign.base;
 
 import java.util.*;
 
+/** Class for performing dynamic programming for a pair HMM
+ * intended to be general to any pair HMM - transition probabilities
+ * in an IndelModel object and emission probability arrays are required 
+ * in the constructor
+ * @author Challis
+ */
 public class PairDP {
 	
+	/** Dynamic programming matrix */
 	public double [][][] DPmat;
+	
+	/** Indel model governing transitions */
 	IndelModel id;
+	
+	/** Joint probabilities of each pairwise combination of objects being 
+	 * aligned (could be individual proteins or entire subtrees)
+	 */
 	double[][] logJointProbs;
+	
+	/** Marginal probabilities for object X (ancestor) */
 	double[] logMargProbsX;
+	
+	/** Marginal probabilities for object Y (descendant) */
 	double[] logMargProbsY;
+	
+	/** lengths of X and Y and number of states in pair HMM */
 	int lx, ly, S;
 		
 	public boolean forwardRun;
@@ -41,7 +60,7 @@ public class PairDP {
 		  for(int j = 1 + ((i==1) ? 1 : 0); j < ly; j++){
 		    for(int s = 0; s < S; s++){
 		    	
-		    	for(int t = 0; t < S; t++)
+		    	for(int t = 0; t < S; t++)					// position to look back to depends on emission pattern of state in HMM
 		    		DPmat[i][j][t] = Utils.logAdd( DPmat[i][j][t], id.trans[s][t] + DPmat[i - id.emit[t][0]] [j - id.emit[t][1]] [s] );		    
 		    	
 		    	DPmat[i][j][s] += emit(i, j, s);
