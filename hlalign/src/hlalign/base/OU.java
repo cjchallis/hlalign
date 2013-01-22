@@ -14,6 +14,12 @@ public class OU {
 	 * not explained by diffusion process */
 	double epsilon;
 	
+	public OU(double s, double t, double e){
+		sigma2 = s;
+		tau = t;
+		epsilon = e;
+	}
+	
 	public double[] marginal(double[][] X){
 		double[] pX = new double[X.length + 2];
 		pX[0] = pX[1] = Utils.log0;

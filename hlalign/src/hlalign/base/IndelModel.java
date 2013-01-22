@@ -3,13 +3,13 @@ package hlalign.base;
 public class IndelModel {
 	
 	/** array containing the parameters of the model */
-	double[] params;
+	public double[] params;
 	
 	/** number of states in pair HMM representation of model */
-	int states;
+	public int states;
 	
 	/** transition matrix between states */
-	double[][] trans;
+	public double[][] trans;
 	
 	/** contains a row for each state
 	 *  X is ancestor, Y descendant
@@ -18,16 +18,19 @@ public class IndelModel {
 	 *  1  0   2
 	 *  0  1   1
 	 *  0  0   0*/
-	int[][] emit;
+	public int[][] emit;
 	
 	/** contains values in 'val' column above */
-	int[] emitVal;
+	public int[] emitVal;
 	
 	/** For heterogeneous models, gives rate class for each state */
-	int[] type;
+	public int[] type;
 	
 	/** calculate @trans from @params 
 	 * should be overridden by specific model types*/
 	public void calcTrans(double t){}
 	
+	public void setParams(double[] pars){
+		params = pars;
+	}
 }

@@ -1,5 +1,7 @@
 package hlalign.base;
 
+import hlalign.indels.TKF91;
+
 // import statalign.model.ext.plugins.StructAlign.MultiNormCholesky;
 
 public class MCMC {
@@ -30,6 +32,14 @@ public class MCMC {
 	public void run(){
 		initialize();
 		System.out.println("LL: " + structure.logLikelihood(tree));
+		
+		OU ou = new OU(1, 10, 1);
+		double[] pX = ou.marginal(coords[0]);
+		double[] pY = ou.marginal(coords[1]);
+		double[][] pXY = ou.joint(coords[0], coords[1], 1);
+		
+		TKF91 tkf91 = new TKF91(.03, .033)
+		
 	}
 	
 	public void initialize(){

@@ -10,20 +10,6 @@ import java.util.*;
  */
 public class Tree {
 
-    /**
-     * When two fragments of two sequences on two neighbor vertices of the tree
-     * are realigned, the proposed new alignment is drawn from a forward-backward
-     * sampling of this HMM. It is a simplified version of the TKF92 model.
-     */
-    // public Hmm2 hmm2;
-    /**
-     * When two fragments of two sequences on two sibling vertices are realigned
-     * drawing a novel ancestral substring for their parent vertex, the proposed new
-     * alignment is drawn from a forward-backward sampling of this HMM. It is
-     * a pair-HMM having states emitting into the non-observable ancestral sequence.
-     */
-    // public HmmSilent hmm3;
-    
 	/** The array of vertices of the tree. */
     public Vertex vertex[];
 
@@ -42,9 +28,11 @@ public class Tree {
     public int[][] fullAlign;
     
     // match, delete, insert - 11, 10, 01 in binary
+    // TODO this should come from indel model later
     public int[] emit = {3, 2, 1};
     
     /** indices of the leaf vertices */
+    // TODO Reverted leaves to be the first vertices - this should be removed 
     public int[] leaves = {3, 4, 5, 6};
     
     Alignment align;
@@ -66,7 +54,7 @@ public class Tree {
     	assignDescentOrder(root, 1);
     	// create coord array where coord[i] are the coordinates
     	// for the vertex with index i
-//    	initCoords();
+// 		initCoords();
     	// currently hard-coded
     	initAlign();
  
