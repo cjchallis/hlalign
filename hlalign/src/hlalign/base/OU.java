@@ -34,7 +34,7 @@ public class OU {
 		
 		double[][] pXY = new double[lx + 2][ly + 2];
 		
-		double var = tau + epsilon, covar = Math.exp(-t * sigma2 / (2 * tau));
+		double var = tau + epsilon, covar = tau * Math.exp(-t * sigma2 / (2 * tau));
 		
 		double[][] covMat = new double[][] { {var, covar}, {covar, var} };
 
