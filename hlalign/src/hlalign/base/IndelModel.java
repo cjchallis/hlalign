@@ -11,12 +11,23 @@ public class IndelModel {
 	/** transition matrix between states */
 	double[][] trans;
 	
-	/** contains a column for each state
-	 *  a column of 1 0 means that the state emits to the ancestor protein 
-	 *  but not the descendant*/
-	int[][] emitPattern;
+	/** contains a row for each state
+	 *  X is ancestor, Y descendant
+	 *  X  Y  val
+	 *  1  1   3
+	 *  1  0   2
+	 *  0  1   1
+	 *  0  0   0*/
+	int[][] emit;
 	
-	/** calculate @trans from @params */
+	/** contains values in 'val' column above */
+	int[] emitVal;
+	
+	/** For heterogeneous models, gives rate class for each state */
+	int[] type;
+	
+	/** calculate @trans from @params 
+	 * should be overridden by specific model types*/
 	public void calcTrans(double t){}
 	
 }
