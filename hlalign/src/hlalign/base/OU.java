@@ -35,10 +35,10 @@ public class OU {
 	
 	public double[][] joint(double[][] X, double[][] Y, double t){
 		
-		int lx = X.length;
-		int ly = Y.length;
+		int lx = X.length + 2;
+		int ly = Y.length + 2;
 		
-		double[][] pXY = new double[lx + 2][ly + 2];
+		double[][] pXY = new double[lx][ly];
 		
 		double var = tau + epsilon, covar = tau * Math.exp(-t * sigma2 / (2 * tau));
 		

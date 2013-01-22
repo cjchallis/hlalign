@@ -17,14 +17,17 @@ public class Utils {
 			return log_b + Math.log(1 + Math.exp(log_a - log_b));
 	}
 	
-	static int sample(double[] probs)
+	static int sample(double[] logProbs)
 	{
 	  double u = generator.nextDouble();
+	  System.out.println("Random number: " + u);
+	  for(int i = 0; i < logProbs.length; i++)
+		  System.out.println(Math.exp(logProbs[i]));
 	  double csum = 0;
 	  int s = -1;
 	  while(u > csum){
 	    s++;  
-	    csum += Math.exp(probs[s]);
+	    csum += Math.exp(logProbs[s]);
 	  }
 	  return s;
 	}

@@ -42,6 +42,13 @@ public class PairDP {
 		S = id.trans.length;
 		forwardRun = false;
 		DPmat = new double[lx][ly][S];
+		
+		for(int i = 0; i < id.emitVal.length; i++)
+			System.out.println("Emitval: " + id.emitVal[i]);
+		
+		for(int i = 0; i < pXY.length; i++)
+			for(int j = 0; j < pXY[0].length; j++)
+				System.out.println(i + " " + j + " "+ pXY[i][j]);
 	}
 	
 	public void forward(){
@@ -59,28 +66,24 @@ public class PairDP {
 		for(int i = 1; i < lx; i++){
 		  for(int j = 1 + ((i==1) ? 1 : 0); j < ly; j++){
 		    for(int s = 0; s < S; s++){
-		    	
 		    	for(int t = 0; t < S; t++)					// position to look back to depends on emission pattern of state in HMM
-		    		DPmat[i][j][t] = Utils.logAdd( DPmat[i][j][t], id.trans[s][t] + DPmat[i - id.emit[t][0]] [j - id.emit[t][1]] [s] );		    
-		    	
+		    		DPmat[i][j][s] = Utils.logAdd( DPmat[i][j][s], id.trans[t][s] + DPmat[i - id.emit[s][0]] [j - id.emit[s][1]] [t] );		    
+
 		    	DPmat[i][j][s] += emit(i, j, s);
-		    	
 		    }
 		  }
 		}	
-		
 		forwardRun = true;
 	}
 	/** Returns marginal probability over all alignments
-	 * should not be called without first calling forward()
-	 * @return
+	 * @return ml
 	 */
 	public double getMarginalLikelihood(){
 		
 		if(!forwardRun)
 			forward();
 		
-		double ml = Math.log(0);
+		double ml = Utils.log0;
 		for(int s = 1; s < S; s++)  // sum starts at 1 to skip Start state
 			ml = Utils.logAdd(ml, id.trans[s][S-1] + DPmat[lx-1][ly-1][s]);  // S-1 is always End state
 		return ml;
@@ -109,6 +112,8 @@ public class PairDP {
 	
 	public int[] backward(){
 		
+		System.out.println("First thing: " + DPmat[142][142][1]);
+		
 		if(!forwardRun)
 			forward();
 		
@@ -120,8 +125,11 @@ public class PairDP {
 		ArrayList<Integer> backAlign = new ArrayList<Integer>();
 		
 		double ml = getMarginalLikelihood();
-		for(int k = 0; k < S; k++)
+		for(int k = 0; k < S; k++){
 			probs[k] = id.trans[k][S-1] + DPmat[lx-1][ly-1][k] - ml;
+			System.out.println(DPmat[lx-1][ly-1][k]);
+		}
+		
 
 		int s = Utils.sample(probs);
 		backAlign.add(S-1);
@@ -130,10 +138,10 @@ public class PairDP {
 		while( (i > 1) || (j > 1) ){
 			
 			for(int k = 0; k < S; k++)
-				probs[k] = id.trans[k][s] + DPmat[i - id.emit[s][0]] [j - id.emit[s][1]] [k] - (DPmat[i][j][s] - emit(i, j, s));
-			s = Utils.sample(probs);
+				probs[k] = id.trans[k][s] + (DPmat[i - id.emit[s][0]] [j - id.emit[s][1]] [k]) - (DPmat[i][j][s] - emit(i, j, s));
 			i -= id.emit[s][0];
 			j -= id.emit[s][1];
+			s = Utils.sample(probs);
 			backAlign.add(s);
 		}
 		

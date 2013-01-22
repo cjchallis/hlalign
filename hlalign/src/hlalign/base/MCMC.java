@@ -39,6 +39,15 @@ public class MCMC {
 		double[][] pXY = ou.joint(coords[0], coords[1], 1);
 		
 		TKF91 tkf91 = new TKF91(.03, .033);
+		tkf91.calcTrans(1);
+		
+		PairDP dp = new PairDP(pX, pY, pXY, tkf91);
+		
+		dp.forward();
+		System.out.println("ML: " + dp.getMarginalLikelihood());
+		int[] align = dp.backward();
+		for(int i = 0; i < align.length; i++)
+			System.out.print(align[i]);
 		
 	}
 	

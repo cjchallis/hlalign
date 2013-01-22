@@ -16,7 +16,7 @@ public class TKF91 extends IndelModel {
 		
 		emitVal = new int[states];
 		for(int i = 0; i < states; i++)
-			emitVal[i] = 2*emit[i][0] + emit[i][0];
+			emitVal[i] = 2*emit[i][0] + emit[i][1];
 		
 		/** lambda, mu */
 		params = new double[] {l, mu}; 
@@ -54,7 +54,7 @@ public class TKF91 extends IndelModel {
 		trans[4][1] = 0;
 		trans[4][2] = 0;
 		trans[4][3] = 0;
-		trans[4][4] = 1;
+		trans[4][4] = 0;
 
 		for(int i = 0; i < states; i++)
 			for(int j = 0; j < states; j++)
