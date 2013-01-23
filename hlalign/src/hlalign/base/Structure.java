@@ -82,9 +82,9 @@ public class Structure {
 		return subTree;
 	}
 		
-	// adds the length of the current edge to the distance between all leaves
-	// of a subtree to all other leaves
-	// 'rows' contains the indices of vertices in the subtree
+	/** adds the length of the current edge to the distance between all leaves
+	 * of a subtree to all other leaves
+	 * 'rows' contains the indices of vertices in the subtree */
 	public void addEdgeLength(double[][] distMat, int[] subTree, double edgeLength){
 		
 		int i = 0;

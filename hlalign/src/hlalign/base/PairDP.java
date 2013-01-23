@@ -42,13 +42,7 @@ public class PairDP {
 		S = id.trans.length;
 		forwardRun = false;
 		DPmat = new double[lx][ly][S];
-		
-		for(int i = 0; i < id.emitVal.length; i++)
-			System.out.println("Emitval: " + id.emitVal[i]);
-		
-		for(int i = 0; i < pXY.length; i++)
-			for(int j = 0; j < pXY[0].length; j++)
-				System.out.println(i + " " + j + " "+ pXY[i][j]);
+
 	}
 	
 	public void forward(){
@@ -112,8 +106,6 @@ public class PairDP {
 	
 	public int[] backward(){
 		
-		System.out.println("First thing: " + DPmat[142][142][1]);
-		
 		if(!forwardRun)
 			forward();
 		
@@ -125,10 +117,8 @@ public class PairDP {
 		ArrayList<Integer> backAlign = new ArrayList<Integer>();
 		
 		double ml = getMarginalLikelihood();
-		for(int k = 0; k < S; k++){
+		for(int k = 0; k < S; k++)
 			probs[k] = id.trans[k][S-1] + DPmat[lx-1][ly-1][k] - ml;
-			System.out.println(DPmat[lx-1][ly-1][k]);
-		}
 		
 
 		int s = Utils.sample(probs);

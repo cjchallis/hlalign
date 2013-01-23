@@ -1,6 +1,6 @@
 package hlalign.base;
 
-import hlalign.indels.TKF91;
+import hlalign.indels.*;
 
 // import statalign.model.ext.plugins.StructAlign.MultiNormCholesky;
 
@@ -11,7 +11,6 @@ public class MCMC {
 	String[] names;
 	double[][][] coords;
 	double[] sigma2;
-	double[][] indelPars;
 	double[][] fullCovar;
 	Tree tree;
 	Alignment[] align;
@@ -25,7 +24,6 @@ public class MCMC {
 		sigma2 = new double[b+n];
 		//tree = new Tree[b+n];
 		align = new Alignment[b+n];
-		indelPars = new double[b+n][];
 		coords = c;
 	}
 	
