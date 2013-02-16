@@ -1,5 +1,10 @@
 package hlalign.base;
 
+import java.util.ArrayList;
+import java.util.List;
+
+import org.apache.commons.math3.distribution.NormalDistribution;
+
 public class Structure {
 	
 	public double sigma2;
@@ -10,11 +15,11 @@ public class Structure {
 	public double [][][] coords;
 	public double[][] fullCovar;
 	
-	public Structure(double [][][] c){
+	public Structure(double [][][] c, double s2, double t, double e){
 		coords = c;
-		sigma2 = 1;
-		tau = 10;
-		epsilon = 1;
+		sigma2 = s2;
+		tau = t;
+		epsilon = e;
 	}
 	
 	public double logLikelihood(Tree tree){
@@ -182,4 +187,222 @@ public class Structure {
 				submat[i][j] = matrix[rows[i]][cols[j]];
 		return submat;
 	}
+
+	/**
+	 * calculates log probabilities from stationary OU process of the structure X
+	 * @param X, a protein structure
+	 * @return array of log probabilities, for use in PairDP 
+	 */
+	public double[] marginal(double[][] X){
+		double[] pX = new double[X.length + 2];
+		pX[0] = pX[1] = Utils.log0;
+		
+		NormalDistribution stationary = new NormalDistribution(0, tau);
+
+		for(int i = 2; i < pX.length; i++)
+			for(int j = 0; j < 3; j++)
+				pX[i] += Math.log(stationary.density(X[i-2][j]));
+		
+		return pX;		    
+	}
+
+	/**
+	 * calculates log probabilities from joint distribution of OU process
+	 * @param 	X, Y: protein structures, 
+	 * @param 	t: branch length between @X and @Y
+	 * @return matrix of log probabilities - every pairwise match between @X and @Y, for use in PairDP
+	 */
+	public double[][] joint(double[][] X, double[][] Y, double t){
+		
+		int lx = X.length + 2;
+		int ly = Y.length + 2;
+		
+		double[][] pXY = new double[lx][ly];
+		
+		double var = tau + epsilon, covar = tau * Math.exp(-t * sigma2 / (2 * tau));
+		
+		double[][] covMat = new double[][] { {var, covar}, {covar, var} };
+
+		MultiNormCholesky joint = new MultiNormCholesky(new double[2], covMat);
+		
+		for(int i = 0; i < 2; i++)
+			for(int j = 0; j < ly; j++)
+				pXY[i][j] = Utils.log0;
+
+		for(int i = 2; i < lx; i++)
+			for(int j = 0; j < 2; j++)
+				pXY[i][j] = Utils.log0;
+			
+		for(int i = 2; i < lx; i++)
+			for(int j = 2; j < ly; j++)
+				for(int k = 0; k < 3; k++)
+					pXY[i][j] += joint.logDensity(new double[] {X[i-2][k], Y[j-2][k]});
+		
+		return pXY;
+	}
+	
+	/**
+	 * calculates log probabilities of a set of leaves in a subtree or complement of the tree
+	 * needed for realigning an internal node and its parent
+	 * @param coords   	Array containing all protein coordinates
+	 * @param align		int array with 1's and 0's representing alignment
+	 * @param vertex	int with the index of a vertex
+	 * @param subTree	if true, use leaves in subtree of @vertex, false, use all other leaves
+	 * @param tree  	tree
+	 * @return array of log probabilities, for use in PairDP
+	 */
+	public double[] marginTree(double[][][] coords, int[][] alignInds, int vertex, boolean subTree, Tree tree){
+		ArrayList<Integer> complement = collectLeaves(tree.vertex[vertex]);
+		if(subTree){
+			ArrayList<Integer> leaves = new ArrayList<Integer>(0);
+			for(int i = 0; i < coords.length; i++)
+				leaves.add(i);
+			for(int i = 0; i < complement.size(); i++)
+				leaves.remove(complement.get(i));
+			complement = leaves;
+		} else { vertex = tree.vertex[vertex].parent.index; }
+		
+		fullCovar = calcFullCovar(tree);
+		
+		int l = coords.length;
+		int[] col = new int[l];
+		
+		int lx = 2;
+		for(int i = 0; i < alignInds[0].length; i++)
+			lx += alignInds[vertex][i] == -1 ? 0 : 1;
+			
+		double[] probs = new double[lx];
+		probs[0] = probs[1] = Utils.log0;	// dynamic programming requires 2 leading log0's
+		int k = 2;
+		
+		for(int i = 0; i < alignInds[0].length; i++){
+			if(alignInds[vertex][i] != -1){
+				for(int j = 0; j < l; j++){
+					if(complement.contains(j))
+						col[j] = -1;
+					else
+						col[j] = alignInds[j][i];
+				}
+				/*System.out.println("Column for i = " + i);
+				for(int j = 0; j < col.length; j++)
+					System.out.println(col[j]);*/
+				probs[k] = columnContrib(col);
+				k++;
+				
+			}
+		}
+		
+		return probs;
+	}
+	
+	/**
+	 * calculates joint probabilities for realignment of an internal node and its parent
+	 * 
+	 * @param coords   	Array containing all protein coordinates
+	 * @param align		int array with 1's and 0's representing alignment
+	 * @param vertex	int with the index of a vertex
+	 * @param subTree	if true, use leaves in subtree of @vertex, false, use all other leaves
+	 * @param tree  	tree
+	 * @return array of log probabilities, for use in PairDP
+	 */
+	public double[][] jointTree(double[][][] coords, int[][] alignInds, int vertex, boolean children, Tree tree){
+		int v1;
+		int v2;
+		
+		ArrayList<Integer> subTree1 = new ArrayList<Integer>(0);
+		subTree1.add(-1);
+		ArrayList<Integer> subTree2;
+		
+		if(!children){
+			v1 = tree.vertex[vertex].parent.index;
+			v2 = vertex;
+			subTree2 = collectLeaves(tree.vertex[v2]);
+		} else {
+			v1 = tree.vertex[vertex].left.index;
+			v2 = tree.vertex[vertex].right.index;
+			subTree1 = collectLeaves(tree.vertex[v1]);
+			subTree2 = collectLeaves(tree.vertex[v2]);
+		}
+		
+		int lx = 2, ly = 2;		// 
+		for(int i = 0; i < alignInds[v1].length; i++)
+			lx += alignInds[v1][i] == -1 ? 0 : 1;
+		for(int i = 0; i < alignInds[v2].length; i++)
+			ly += alignInds[v2][i] == -1 ? 0 : 1;
+		
+		double[][] pXY = new double[lx][ly];
+		
+		System.out.println("lx: " + lx);
+		System.out.println("ly: " + ly);
+			
+		for(int i = 0; i < 2; i++)
+			for(int j = 0; j < ly; j++)
+				pXY[i][j] = Utils.log0;
+
+		for(int i = 2; i < lx; i++)
+			for(int j = 0; j < 2; j++)
+				pXY[i][j] = Utils.log0;
+		
+		fullCovar = calcFullCovar(tree);
+		
+		int l = coords.length;
+		int[] col = new int[l];
+		
+		int x = 2, y = 2;
+
+		for(int i = 0; i < alignInds[v1].length; i++){
+			if(alignInds[v1][i] != -1){
+				y = 2;
+				for(int j = 0; j < alignInds[v2].length; j++){
+					if(alignInds[v2][j] != -1){
+						for(int k = 0; k < l; k++){
+							if(subTree2.contains(k))
+								col[k] = alignInds[k][j];
+							else if(!children || subTree1.contains(k))
+								col[k] = alignInds[k][i];
+							else
+								col[k] = -1;
+						}
+						//System.out.println("x: " + x + " y: " + y);
+						pXY[x][y] = columnContrib(col);
+						y++;
+						
+						//System.out.println("Column for i = " + i + " and j = " + j + ":");
+						//for(int k = 0; k < col.length; k++)
+						//	System.out.println(col[k]);
+					}
+				}
+				x++;
+			}
+		}
+		return pXY;
+	}
+	
+	public int[][] makeAlignInds(int[][] align){	
+		int[] inds = new int[align.length];
+		int[][] alignInds = new int[align.length][align[0].length];
+		
+		for(int i = 0; i < align.length; i++)
+			for(int j = 0; j < align[0].length; j++)
+				alignInds[i][j] = align[i][j] == 0 ? -1 : inds[i]++;
+		return alignInds;
+	}
+	
+	public ArrayList<Integer> collectLeaves(Vertex v){
+		ArrayList<Integer> inds = new ArrayList<Integer>(0);
+		moveDown(v, inds);
+		return inds;
+	}
+	
+	public void moveDown(Vertex v, List<Integer> inds){
+		if(v.left != null){
+			moveDown(v.left, inds);
+			moveDown(v.right, inds);
+		}
+		else
+			inds.add(v.index);
+	}
+	
+	
+	
 }

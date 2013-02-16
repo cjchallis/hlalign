@@ -93,4 +93,14 @@ public class Vertex {
     	name = nm;
     	index = i;
     }
+    
+    public int[][] get4Align(){
+    	int[][] fourAlign = new int[4][];
+    	int[][] align = owner.alignArray;
+    	fourAlign[0] = align[parent.index];
+    	fourAlign[1] = align[index];
+    	fourAlign[2] = align[left.index];
+    	fourAlign[3] = align[right.index];
+    	return fourAlign;
+    }
 }
