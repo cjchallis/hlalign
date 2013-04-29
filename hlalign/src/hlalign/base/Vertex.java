@@ -7,7 +7,7 @@ package hlalign.base;
  * not change functions in it. The implemented functions are quite unreadable, since we
  * opted for efficiency and not readability. You should be able to develop novel
  * functionality of the software package (postprocessing, substitution models, etc.)
- * without touching this class.
+ * without touching this class.x
  * @author miklos, novak
  */
 
@@ -46,43 +46,21 @@ public class Vertex {
      */
     public Vertex right;
 
-    /** The alignment between this vertex and its left/right descendant, given as the 
-     * sequence of states through a pair HMM, with this vertex as the ancestor
-     */
-    public int[] alignL;
-    public int[] alignR;
-    
-    public int descentOrder;
-    
-    int length;					// sequence length
-//    AlignColumn first;			// first alignment column of Vertex
-//    AlignColumn last;			// last, virtual alignment column of Vertex (always present)
-    String seq;					// original sequence of this Vertex (given for leaves only)
-
-    int winLength;                    // length of window
- //   AlignColumn winFirst;        // first alignment column of window
- //   AlignColumn winLast;        // first alignment column past window end
-    boolean selected;                // shows if vertex is part of the selected subtree
-
     /** The length of the edge that connects this vertex with its parent. */
-    public double edgeLength;                            // length of edge to parent vertex
-    double[][] charTransMatrix;            // precalculated character transition likelihoods (subst. model)
-    double[][] charPropTransMatrix;        // precalculated character transition likelihoods for proposals (subst. model)
-    double[][] hmm2TransMatrix;            // precalculated state transition likelihoods for 2-seq HMM (indel model)
-    double[][] hmm2PropTransMatrix;        // precalculated state transition likelihoods for 2-seq HMM used for proposals (indel model)
-    double[][] hmm3TransMatrix;            // precalculated state transition likelihoods for 3-seq HMM (indel model)
-    double[][] hmm3RedTransMatrix;    // precalculated st. trans. likelihoods for 3-seq HMM, silent st. removed (indel model)
+    public double edgeLength;          			// length of edge to parent vertex
 
-    /**
-     * The log-sum of the Felsenstein's likelihoods of characters that are inserted into the
-     * sequence of this vertex.
-     */
-    public double orphanLogLike;        // log-sum of the likelihood of each orphan column in subtree (incl. this vertex)
-    /**
-     * The log-sum of the cumulative insertion-deletion loglikelihoods up to this vertex (ie. summed over the
-     * subtree below this vertex.).
-     */
-    public double indelLogLike;
+    int length;									// sequence length
+    String seq;									// original sequence of this Vertex (given for leaves only)
+
+    
+    // the following are all column-specific and relate to the Poission Indel Process
+    public double survival;						// survival probability
+    public double commonAncestor;				// if a common ancestor of the column, Utils.log0 if not
+    public double[] fels;						// felsenstein vector, \tilde{f}_v(\sigma)
+    public double felsSum;						// weighted sum by Pi over felsenstein vector of this vertex, \tilde{f}_v
+    public double firstVertex;					// probability of alignment column given that this was the first vertex
+    												// after insertion of the original character, f_v
+    public double[][] subMatrix;				// (log) substitution probabilities from parent to this vertex
 
     public int leafCount;
 
@@ -94,13 +72,49 @@ public class Vertex {
     	index = i;
     }
     
-    public int[][] get4Align(){
-    	int[][] fourAlign = new int[4][];
-    	int[][] align = owner.alignArray;
-    	fourAlign[0] = align[parent.index];
-    	fourAlign[1] = align[index];
-    	fourAlign[2] = align[left.index];
-    	fourAlign[3] = align[right.index];
-    	return fourAlign;
+    /**
+     * Calculate the felsenstein vector for this vertex (for a particular column)
+     * from its children
+     */
+    public void felsenstein(){   	
+    	for(int i = 0; i < fels.length; i++){
+    	   	double l = Utils.log0;
+        	double r = Utils.log0;
+    		for(int j = 0; j < fels.length; j++){
+    			l = Utils.logAdd(l, left.subMatrix[i][j] + left.fels[j]);
+    			r = Utils.logAdd(r, right.subMatrix[i][j] + right.fels[j]);
+    		}
+    		fels[i] = l + r;
+    	}  	
+    }
+    
+    /**
+     * Calculate the pi-weighted felsenstein sum, equivalent to substitution likelihood
+     * if the alignment column originated at this vertex
+     * This quantity is \tilde{f}_v from the PIP paper
+     */
+    public void calcFelsSum(){
+    	felsSum = Utils.log0;
+    	for(int i = 0; i < fels.length; i++)
+    		felsSum = Utils.logAdd(felsSum, owner.subs.pi[i] + fels[i]);
+    }
+    
+    /**
+     * Calculate probability of column history given this as the first vertex
+     * This quantity is f_v from the PIP paper
+     * @param empty Calculate for empty column?
+     */
+    public void calcFirstVertex(boolean empty){
+    	if(this == owner.root)
+    		firstVertex = felsSum;
+    	else if(!empty)
+    		firstVertex = commonAncestor + survival + felsSum;
+    	else
+    		firstVertex = Math.log(1 + Math.exp(survival)*(1-Math.exp(felsSum)));			// calc probability of empty column
+    																						// given this as the first non-empty vertex  		
+    }
+    
+    public void calcSurvival(){
+    	survival = -Math.log(edgeLength) - Math.log(owner.mu) + Math.log(1 - Math.exp(edgeLength * owner.mu));
     }
 }

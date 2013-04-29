@@ -7,9 +7,9 @@ import hlalign.base.Utils;
 
 public class TKF91 extends IndelModel {
 	
-	public TKF91(double l, double mu){
+	public TKF91(double par[]){
 		/** lambda, mu */
-		params = new double[] {l, mu}; 
+		params = par.clone(); 
 		
 		/** Start, Match, Delete, Insert, End */
 		int[][] emit = new int[][] { {0, 0},

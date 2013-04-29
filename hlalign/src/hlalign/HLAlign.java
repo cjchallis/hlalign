@@ -6,11 +6,22 @@ public class HLAlign {
 	
 	public static void main(String[] args){
 		System.out.println("Hierarchical Links Alignment v0.0");
+		int n = args.length;
+		String[] coordFiles = new String[n/2];
+		String[] seqFiles = new String[n/2];
+		
+		for(int i = 0; i < n/2; i++){
+			coordFiles[i] = args[i];
+			seqFiles[i] = args[i + n/2];
+		}
 		
 		DataReader datareader = new DataReader();
-		datareader.readAllCoords(args);
+		datareader.readAllCoords(coordFiles);
+		datareader.readAllSeqs(seqFiles);
+		try{datareader.readSub();}
+		catch(Exception e){System.out.println("Error reading substitutions.");}
 		
-		MCMC mcmc = new MCMC(5, 5, datareader.coords, args);
+		MCMC mcmc = new MCMC(5, 5, datareader.coords, datareader.seqs, coordFiles);
 		mcmc.run();
 		System.out.println("Done");
 	}

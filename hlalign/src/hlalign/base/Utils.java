@@ -10,7 +10,7 @@ public class Utils {
 	
 	public static final double log0 = Double.NEGATIVE_INFINITY;
 	
-	static double logAdd(double log_a, double log_b){
+	public static double logAdd(double log_a, double log_b){
 		if (log_a == log0)
 			return log_b;
 		else if (log_b == log0)
@@ -24,9 +24,6 @@ public class Utils {
 	static int sample(double[] logProbs)
 	{
 	  double u = generator.nextDouble();
-	  // System.out.println("Random number: " + u);
-	  // for(int i = 0; i < logProbs.length; i++)
-	  //	  System.out.println(Math.exp(logProbs[i]));
 	  double csum = 0;
 	  int s = -1;
 	  while(u > csum){

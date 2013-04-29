@@ -5,6 +5,7 @@ public class IndelModel {
 	public HMM two;
 	public HMM three;
 	public HMM four;
+	public int types;
 	
 	/** array containing the parameters of the model */
 	public double[] params;

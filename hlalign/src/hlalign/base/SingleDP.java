@@ -68,7 +68,7 @@ public class SingleDP {
 			if(i > 0){
 				for(int s : equalStates[origAlign[i]]){
 					if(!hmm.silent[s]){
-						for(int t : equalStates[origAlign[i-1]])			// position to look back to depends on emission pattern of state in HMM
+						for(int t : equalStates[origAlign[i-1]])
 							DPmat[i][s] = Utils.logAdd( DPmat[i][s], hmm.trans[t][s] + DPmat[i-1][t] );		    
 						DPmat[i][s] += emit(i, s);
 					}
