@@ -105,7 +105,11 @@ public class Tree {
     	
     	// printTree(root);
     
-
+    	parentAlign(root);
+    	
+    	align = createMultAlign(root);
+    	alignArray = alignToArray(align.first);
+    	printAlign();
     }
     
  
