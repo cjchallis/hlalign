@@ -52,6 +52,11 @@ public class Vertex {
     int length;									// sequence length
     String seq;									// original sequence of this Vertex (given for leaves only)
 
+    /** alignments between Left and Right children */
+    public int[] alignL;
+    public int[] alignR;
+    
+    public int descentOrder;
     
     // the following are all column-specific and relate to the Poission Indel Process
     public double survival;						// survival probability
