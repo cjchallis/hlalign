@@ -2,13 +2,6 @@ package hlalign.base;
 
 
 /**
- * This is a vertex of the tree.
- * The 'hardcore' functions are implemented in this class, developers are suggested
- * not change functions in it. The implemented functions are quite unreadable, since we
- * opted for efficiency and not readability. You should be able to develop novel
- * functionality of the software package (postprocessing, substitution models, etc.)
- * without touching this class.x
- * @author miklos, novak
  */
 
 public class Vertex {

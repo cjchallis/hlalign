@@ -73,14 +73,14 @@ public class DataReader {
 			throws java.io.FileNotFoundException{
 		BufferedReader bf;
 		try{
-			bf = new BufferedReader(new FileReader("data/alphabet.dat"));
+			bf = new BufferedReader(new FileReader("data/alphabetA.dat"));
 			String a = bf.readLine();
 			char[] alphabet = new char[a.length()];
 			for(int i = 0; i < alphabet.length; i++){
 				alphabet[i] = a.charAt(i);
 			}
 			bf.close();
-			bf = new BufferedReader(new FileReader("data/jtt.dat"));
+			bf = new BufferedReader(new FileReader("data/a.dat"));
 			int size = alphabet.length;
 			u = new double[size][size];
 			v = new double[size][size];
@@ -108,7 +108,7 @@ public class DataReader {
 			}
 			bf.close();
 			
-			bf = new BufferedReader(new FileReader("data/jttPi.dat"));
+			bf = new BufferedReader(new FileReader("data/aPi.dat"));
 			for(int i = 0; i < size; i++){
 				t = bf.readLine();
 				e[i] = Double.parseDouble(t);
