@@ -10,10 +10,8 @@ public class DataReader {
 	
 	public char[][] seqs;
 	
-	double[][] u;
-	double[][] v;
-	double[] d;
-	double[] e;
+	public double[][] subQ;
+	public double[] e;
 	
 	public DataReader(){}
 	
@@ -82,32 +80,19 @@ public class DataReader {
 			bf.close();
 			bf = new BufferedReader(new FileReader("data/a.dat"));
 			int size = alphabet.length;
-			u = new double[size][size];
-			v = new double[size][size];
-			d = new double[size];
+			subQ = new double[size][size];
 			e = new double[size];
 			
 			String[] temp;
 			for(int i = 0; i < size; i++){
 				temp = (bf.readLine()).split(" ");
 				for(int j = 0; j < size; j++){
-					u[i][j] = Double.parseDouble(temp[j]);
+					subQ[i][j] = Double.parseDouble(temp[j]);
 				}
-			}
-			String t = bf.readLine(); //reading an empty line
-			for(int i = 0; i < size; i++){
-				temp = (bf.readLine()).split(" ");
-				for(int j = 0; j < size; j++){
-					v[i][j] = Double.parseDouble(temp[j]);
-				}
-			}
-			t = bf.readLine(); //reading an empty line
-			for(int i = 0; i < size; i++){
-				t = bf.readLine();
-				d[i] = Double.parseDouble(t);
 			}
 			bf.close();
 			
+			String t;
 			bf = new BufferedReader(new FileReader("data/aPi.dat"));
 			for(int i = 0; i < size; i++){
 				t = bf.readLine();

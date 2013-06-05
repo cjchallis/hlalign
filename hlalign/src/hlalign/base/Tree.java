@@ -2,7 +2,7 @@ package hlalign.base;
 
 import java.util.*;
 import hlalign.indels.*;
-
+import org.apache.commons.math3.util.ArithmeticUtils;
 
 public class Tree {
 
@@ -36,7 +36,9 @@ public class Tree {
     /** Maps Vertex.descentOrder to Vertex.index  */
     ArrayList<Integer> indexMap;
     
-    public double mu;
+    public double l, mu;
+    
+    public double totalBranchLength;
     
     Alignment align;
     
@@ -48,12 +50,12 @@ public class Tree {
     	names = pnames;
     	vertex = new Vertex[2*names.length - 1];
     	for(int i = 0; i < vertex.length; i++){
-    		vertex[i] = new Vertex(i, null);
-    		vertex[i].owner = this;
+    		vertex[i] = new Vertex(i, null, this);
     	}
    
     	title = "Tree";
-    	
+    	mu = 1.0;
+    	l = 2.0;
     	// currently hard-coded topology
     	initTopology();
     	
@@ -74,7 +76,7 @@ public class Tree {
     }
     
     public void initTopology(){
-    	/* hard-coded tree topology for 4 proteins */
+    	/* hard-coded tree topology for 4 proteins 
     	root = vertex[vertex.length - 1];
     	root.left = vertex[vertex.length - 2];
     	root.right = vertex[vertex.length - 3];
@@ -88,10 +90,36 @@ public class Tree {
     	vertex[2].parent = vertex[3].parent = vertex[4];
     	vertex[0].parent = vertex[1].parent = vertex[5];
     	vertex[4].parent = vertex[5].parent = vertex[6];
-    	
-    	for(int i = 0; i < vertex.length; i++)
-    		vertex[i].index = i;
+    	*/
 
+    	/* hard-coded topology for PIP example 
+    	 * v2  0
+    	 * v3  1
+    	 * v4  2
+    	 * v0  3
+    	 * v1  4
+    	 */
+    	vertex[3].left  = vertex[0];
+    	vertex[3].right = vertex[1];
+    	vertex[4].left  = vertex[3];
+    	vertex[4].right = vertex[2];
+    	
+    	vertex[0].parent = vertex[3];
+    	vertex[1].parent = vertex[3];
+    	vertex[3].parent = vertex[4];
+    	vertex[2].parent = vertex[4];
+    	
+    	vertex[0].edgeLength = vertex[1].edgeLength = vertex[3].edgeLength = 1.0;
+    	vertex[2].edgeLength = 2.0;
+    	
+    	root = vertex[4];
+    	root.name = "root";
+    	root.edgeLength = 0.0;
+    	
+    	vertex[0].leaf = vertex[1].leaf = vertex[2].leaf = true;
+    	
+    	// for(int i = 0; i < vertex.length; i++)
+    	//	 vertex[i].index = i;
     }
     
     public void initAlign(){
@@ -105,11 +133,18 @@ public class Tree {
     	
     	// printTree(root);
     
+    	// this block runs under old hlAlign code - leave running for now to avoid errors in other parts of code
     	parentAlign(root);
     	
     	align = createMultAlign(root);
     	alignArray = alignToArray(align.first);
     	printAlign();
+    	
+    	align.matrix = new int[][] { 
+    			{1,0,1},
+    			{0,0,1},
+    			{0,1,1}
+    	};
     }
     
  
@@ -118,6 +153,8 @@ public class Tree {
     public void parentAlign(Vertex v){
     	if(v.left.left != null){
     		parentAlign(v.left);
+    	}
+    	if(v.right.right != null){
     		parentAlign(v.right);
     	}
     	
@@ -143,8 +180,7 @@ public class Tree {
     	for(int i = 0; i < leftInds.length; i++)
     		alignInds[i] = Utils.copyOf(leftInds[i]);
     	
-    	
-    	
+     	
     	for(int i = 0; i < indexMap.size(); i++){
     		int j = indexMap.get(i);
     		System.out.println("iMap: " + j);
@@ -208,7 +244,8 @@ public class Tree {
     	System.out.println(align.first.size());
     	System.out.println(align.first.next.size());
     	System.out.println(ac.size());
-    	for(int i = 0; i < 7; i++){
+    	// WARNING HARD-CODED VALUE
+    	for(int i = 0; i < 5; i++){
     		ac = align.first.next;
     		while(ac.next != null){
     			System.out.print(ac.get(i));
@@ -221,8 +258,7 @@ public class Tree {
     		for(int j = 0; j < alignArray[0].length; j++)
     			System.out.print(alignArray[i][j]);
     		System.out.println();
-    	}
-    	
+    	}  	
     }
     
     /**
@@ -251,6 +287,8 @@ public class Tree {
     	i++;
     	if(v.left.left != null){
     		i = assignDescentOrder(v.left, i);
+    	}
+    	if(v.right.right != null){
     		i = assignDescentOrder(v.right, i);
     	}
     	return i;
@@ -405,9 +443,35 @@ public class Tree {
     	
     	if(v.left.left != null){
     		combinePairwise(v.left, al);
+    	}
+    	if(v.right.right != null){
     		combinePairwise(v.right, al);
     	}
     		
-    }    
-       
+    }  
+    
+    /**
+     * Calculate Felsenstein sum for each vertex (for a particular alignment column)   
+     */
+    public void calcFelsSite(Vertex v, int col){
+    	if(v.left != null){
+    		calcFelsSite(v.left, col);
+    		calcFelsSite(v.right, col);
+    	}
+    	v.felsenstein(col);
+    }
+    
+    /**
+     * Update the total branch length of the tree
+     */
+    public void calcBranchLength(){
+    	totalBranchLength = 0;
+    	for(int i = 0; i < vertex.length; i++)
+    		totalBranchLength += vertex[i].edgeLength;
+    }
+    
+    public double phiEmpty(double z, int k){
+    	double nu = l * (totalBranchLength + 1.0 / mu);
+    	return -ArithmeticUtils.factorialLog(k) + k * Math.log(nu) + (z-1)*nu; 
+    }
 }

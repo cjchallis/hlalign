@@ -21,7 +21,8 @@ public class HLAlign {
 		try{datareader.readSub();}
 		catch(Exception e){System.out.println("Error reading substitutions.");}
 		
-		MCMC mcmc = new MCMC(5, 5, datareader.coords, datareader.seqs, coordFiles);
+		
+		MCMC mcmc = new MCMC(5, 5, datareader, coordFiles);
 		mcmc.run();
 		System.out.println("Done");
 	}
