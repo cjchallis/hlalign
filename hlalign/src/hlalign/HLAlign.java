@@ -20,6 +20,7 @@ public class HLAlign {
 		datareader.readAllSeqs(seqFiles);
 		try{datareader.readSub();}
 		catch(Exception e){System.out.println("Error reading substitutions.");}
+		datareader.charToInt();
 		
 		
 		MCMC mcmc = new MCMC(5, 5, datareader, coordFiles);

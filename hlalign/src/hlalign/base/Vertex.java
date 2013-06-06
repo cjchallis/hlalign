@@ -85,6 +85,8 @@ public class Vertex {
     /**
      * Calculate the felsenstein vector for this vertex (for a particular column)
      * from its children
+     * Uses an alignment matrix containing indices of characters, not just +/-
+     * For PIP, gap character is last index (20 for proteins, 0-19 amino acids)
      */
     public void felsenstein(int col){
     	if(leaf){
@@ -95,7 +97,9 @@ public class Vertex {
     		for(int i = 0; i < fels.length; i++){
     			double l = Utils.log0;
     			double r = Utils.log0;
+    			//System.out.println("Vertex " + index + "col " + col);
     			for(int j = 0; j < fels.length; j++){
+    				//System.out.println(left.subMatrix[i][j] + " " + left.fels[j]);
     				l = Utils.logAdd(l, left.subMatrix[i][j] + left.fels[j]);
     				r = Utils.logAdd(r, right.subMatrix[i][j] + right.fels[j]);
     			}

@@ -9,9 +9,11 @@ public class DataReader {
 	public double[][][] coords;
 	
 	public char[][] seqs;
+	public int[][] seqsInt;
 	
 	public double[][] subQ;
 	public double[] e;
+	public String alphaString;
 	
 	public DataReader(){}
 	
@@ -41,10 +43,11 @@ public class DataReader {
 	
 	public void readAllSeqs(String[] files){
 		seqs = new char[files.length][];
-		for(int i = 0; i < files.length; i++)
+		for(int i = 0; i < files.length; i++){
 			try{
 				seqs[i] = readSeq(files[i]);
 			} catch(Exception e){System.out.println("File '"+files[i]+ "' not found.");}
+		}
 	}
 	
 	public char[] readSeq(String file)
@@ -71,14 +74,15 @@ public class DataReader {
 			throws java.io.FileNotFoundException{
 		BufferedReader bf;
 		try{
-			bf = new BufferedReader(new FileReader("data/alphabetA.dat"));
+			bf = new BufferedReader(new FileReader("data/alphabet.dat"));
 			String a = bf.readLine();
 			char[] alphabet = new char[a.length()];
 			for(int i = 0; i < alphabet.length; i++){
 				alphabet[i] = a.charAt(i);
 			}
+			alphaString = new String(alphabet);
 			bf.close();
-			bf = new BufferedReader(new FileReader("data/a.dat"));
+			bf = new BufferedReader(new FileReader("data/jttQ.dat"));
 			int size = alphabet.length;
 			subQ = new double[size][size];
 			e = new double[size];
@@ -93,7 +97,7 @@ public class DataReader {
 			bf.close();
 			
 			String t;
-			bf = new BufferedReader(new FileReader("data/aPi.dat"));
+			bf = new BufferedReader(new FileReader("data/jttPi.dat"));
 			for(int i = 0; i < size; i++){
 				t = bf.readLine();
 				e[i] = Double.parseDouble(t);
@@ -103,5 +107,14 @@ public class DataReader {
 		catch(Exception e){System.out.println("Exception in reading substitution matrix"); 
 		System.out.println(e.getClass());
 		System.out.println(e.getMessage());}
+	}
+	
+	public void charToInt(){
+		seqsInt = new int[seqs.length][];
+		for(int i = 0; i < seqs.length; i++)
+			seqsInt[i] = new int[seqs[i].length];
+		for(int i = 0; i < seqs.length; i++)
+			for(int j = 0; j < seqs[i].length; j++)
+				seqsInt[i][j] = alphaString.indexOf(seqs[i][j]);
 	}
 }

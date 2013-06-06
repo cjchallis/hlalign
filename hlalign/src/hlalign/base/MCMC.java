@@ -18,12 +18,14 @@ public class MCMC {
 	double[] MU;
 	double l;
 	double[] L;
+	double currLogLike;
 	
 	SubstitutionModel subModel;
 	DataReader dataReader;
 	String[] names;
 	double[][][] coords;
 	char[][] seqs;
+	int[][] seqsInt;
 	double[] sigma2;
 	double[][] fullCovar;
 	Tree tree;
@@ -42,6 +44,7 @@ public class MCMC {
 		dataReader = dr;
 		coords = dr.coords;
 		seqs = dr.seqs;
+		seqsInt = dr.seqsInt;
 		
 		for(int i = 0; i < coords.length; i++){
 			RealMatrix temp = new Array2DRowRealMatrix(coords[i]);
@@ -60,16 +63,6 @@ public class MCMC {
 		double[] pY = structure.marginal(coords[1]);
 		double[][] pXY = structure.joint(coords[0], coords[1], 1);
 		
-		for(int i = 0; i < 6; i++)
-			System.out.println(pX[i]);
-		for(int i = 0; i < 6; i++)
-			System.out.println(pY[i]);
-		for(int i = 0; i < 6; i++){
-			for(int j = 0; j < 6; j++)
-				System.out.print(pXY[i][j]);
-			System.out.println();
-		}
-				
 		TKF91 tkf91 = new TKF91(new double[]{.03, .033});
 		tkf91.two.calcTrans(1);
 		
@@ -130,56 +123,8 @@ public class MCMC {
 		
 		convertAlign(tree.alignArray);
 
-		/*
-		 * new code for PIP testing
-		 */
-		
-		tree.calcBranchLength();
-		
-		for(int i = 0; i < tree.vertex.length; i++)
-			tree.vertex[i].subMatrix = subModel.calcSubMatrix(tree.vertex[i].edgeLength);
-
-		for(int i = 0; i < tree.vertex.length; i++){
-			tree.vertex[i].calcSurvival();
-			System.out.println("Vertex " + i + " Survival: " + Math.exp(tree.vertex[i].survival));
-			tree.vertex[i].calcPrior();
-		}
-		
-		double mll = 0;
-		for(int j = 0; j < tree.align.matrix[0].length; j++){
-			tree.calcFelsSite(tree.root, j);
-			for(int i = 0; i < tree.vertex.length; i++){
-				tree.vertex[i].calcFelsSum();
-				System.out.println("Vertex " + i + " fv = " + Math.exp(tree.vertex[i].felsSum));
-			}
-			tree.root.findDescChars(j);
-			tree.root.checkAncestral(0);
-			for(int i = 0; i < tree.vertex.length; i++)
-				System.out.println("fv" + i + " " + Math.exp(tree.vertex[i].firstVertex));
-			double pc = Utils.log0;
-			for(int i = 0; i < tree.vertex.length; i++){
-				System.out.println("pc: " + pc);
-				System.out.println("prior: " + tree.vertex[i].priorFirst);
-				System.out.println("firstV: " + tree.vertex[i].firstVertex);
-				pc = Utils.logAdd(pc, tree.vertex[i].priorFirst + tree.vertex[i].firstVertex);
-			}
-			if(j == tree.align.matrix[0].length - 1){
-				double xx = tree.phiEmpty(Math.exp(pc), tree.align.matrix[0].length - 1); 
-				mll += xx;
-				System.out.println("p(c_0): " + Math.exp(pc));
-				System.out.println(xx);
-			}
-			else {
-				mll += pc;
-				System.out.println("p(c): " + pc);
-			}
-		}
-		System.out.println("TADA!");
-		System.out.println("Marginal log likelihood: " + mll);
-		
-		
-		
-		
+		/* calc PIP ml */
+		tree.calcML();
 	}
 	
 	public void initialize(){
@@ -187,8 +132,9 @@ public class MCMC {
 		l = 2;
 		
 		subModel = new SubstitutionModel(dataReader.subQ, dataReader.e, mu);
+				
 		structure = new Structure(coords, .1, 100, .1);
-		tree = new Tree(names, coords, this);
+		tree = new Tree(names, coords, seqsInt, this);
 	}
 	
 	public void convertAlign(int[][] align){

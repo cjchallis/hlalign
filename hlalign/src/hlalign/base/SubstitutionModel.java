@@ -16,6 +16,7 @@ public class SubstitutionModel {
 	public double[] pi;
 
 	public char[] alphabet;
+	public String alphaString;
 	
 	int n;
 	
