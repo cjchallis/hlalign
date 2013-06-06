@@ -5,8 +5,8 @@ import org.apache.commons.math3.linear.RealMatrix;
 import org.apache.commons.math3.linear.RealVector;
 
 import hlalign.indels.*;
-import hlalign.heterogeneous.*;
 import hlalign.io.*;
+import hlalign.mcmc.*;
 
 // import statalign.model.ext.plugins.StructAlign.MultiNormCholesky;
 
@@ -14,9 +14,9 @@ public class MCMC {
 	public int B;
 	public int N;
 	
-	double mu;
+	public double mu;
 	double[] MU;
-	double l;
+	public double l;
 	double[] L;
 	double currLogLike;
 	
@@ -32,7 +32,7 @@ public class MCMC {
 	Alignment[] align;
 	// int[][] alignArray;
 	Structure structure;
-	Residue[][] resAlign;
+	McmcMove[] moves;
 	
 	public MCMC(int b, int n, DataReader dr, String[] pnames){
 		B = b;
@@ -55,7 +55,13 @@ public class MCMC {
 	}
 	
 	public void run(){
-		initialize();
+		initialize();	// set initial tree, alignment, parameters, and calculate log likelihood
+		
+		createMoves();
+		
+		deterministicScan();
+		
+		/*
 		System.out.println("LL: " + structure.logLikelihood(tree));
 		
 		
@@ -120,11 +126,20 @@ public class MCMC {
 			}
 			System.out.println();
 		}
-		
-		convertAlign(tree.alignArray);
+		*/
 
-		/* calc PIP ml */
-		tree.calcML();
+
+	}
+	
+	public boolean isParamChangeAccepted(double logProposal, McmcMove move){
+		return true;
+	}
+	
+	public double getLogLike(){
+		return currLogLike;
+	}
+	public void setLogLike(double ll){
+		currLogLike = ll;
 	}
 	
 	public void initialize(){
@@ -135,58 +150,28 @@ public class MCMC {
 				
 		structure = new Structure(coords, .1, 100, .1);
 		tree = new Tree(names, coords, seqsInt, this);
+		/* calc PIP ml */
+		currLogLike = tree.calcML();
+	}
+	public void createMoves(){
+		// 2 moves - eta and zeta
+		moves = new McmcMove[2];
+		
+		GammaPrior etaPrior = new GammaPrior(1.5, .01);
+		GammaProposal etaProp = new GammaProposal(1, 1);
+		moves[0] = new EtaMove(this, etaPrior, etaProp, "eta");
+		moves[0].proposalWidthControlVariable = 1;
+		
+		GammaPrior zetaPrior = new GammaPrior(1, 1);
+		GammaProposal zetaProp = new GammaProposal(1, 1);
+		moves[1] = new ZetaMove(this, zetaPrior, zetaProp, "zeta");
+		moves[1].proposalWidthControlVariable = 1;
 	}
 	
-	public void convertAlign(int[][] align){
-		int n = align.length;
-		int[] lengths = new int[n];
-		for(int i = 0; i < n; i++)
-			for(int j = 0; j < align[0].length; j++)
-				lengths[i] += align[i][j];
-		resAlign = new Residue[n][];
-		for(int i = 0; i < n; i++)
-			resAlign[i] = new Residue[lengths[i]];
-		
-		for(int i = 0; i < n; i++)
-			for(int j = 0; j < lengths[i]; j++)
-				resAlign[i][j] = new Residue(j);
-		
-		int[] idx = new int[n];
-		int[] parents = new int[n];
-		int[] lefts = new int[n];
-		int[] rights = new int[n];
-		for(int i = 0; i < n; i++){
-			if(tree.vertex[i].parent != null)
-				parents[i] = tree.vertex[i].parent.index;
-			else
-				parents[i] = -1;
-			if(tree.vertex[i].left != null)
-				lefts[i] = tree.vertex[i].left.index;
-			else
-				lefts[i] = -1;
-			if(tree.vertex[i].right != null)
-				rights[i] = tree.vertex[i].right.index;
-			else
-				rights[i] = -1;
-			
+	public void deterministicScan(){
+		for(int i = 0; i < 1; i++){
+			moves[0].move(tree);
+			moves[1].move(tree);
 		}
-			
-		
-		for(int j = 0; j < align[0].length; j++){
-			for(int i = 0; i < align.length; i++){
-				if(align[i][j] == 1){
-					if(parents[i] > -1)
-						if(align[parents[i]][j] == 1)
-							resAlign[i][idx[i]].parent = resAlign[parents[i]][idx[parents[i]]];
-					if(lefts[i] > -1){
-						if(align[lefts[i]][j] == 1)
-							resAlign[i][idx[i]].left = resAlign[lefts[i]][idx[lefts[i]]];
-						if(align[rights[i]][j] == 1)
-							resAlign[i][idx[i]].right = resAlign[rights[i]][idx[rights[i]]];
-					}
-				}
-			}
-		}		
 	}
-	
 }

@@ -1,12 +1,15 @@
 package hlalign.base;
 
-import java.util.*;
-
 import org.apache.commons.math3.linear.ArrayRealVector;
 import org.apache.commons.math3.linear.RealMatrix;
 import org.apache.commons.math3.linear.RealVector;
+import org.apache.commons.math3.random.RandomGenerator;
+import org.apache.commons.math3.random.Well19937c;
+import org.apache.commons.math3.util.FastMath;
 
 public class Utils {
+	
+	public static final boolean DEBUG = false;
 	
 	public static final double log0 = Double.NEGATIVE_INFINITY;
 	
@@ -36,7 +39,8 @@ public class Utils {
 	/**
 	 * The random number generator used throughout the program.
 	 */
-	public static Random generator = new Random(1);
+	// public static Random generator = new Random(1);
+	public static RandomGenerator generator = new Well19937c(1);
 	
 	public static int[] copyOf(int[] array) {
 		int len = array.length;
@@ -67,5 +71,46 @@ public class Utils {
 		return mean;
 	}
 	
+	/**
+	 * During the burnin, the proposalWidthControlVariable for all continuous parameters
+	 * is adjusted in order to ensure that the average acceptance rate is between 
+	 * MIN_ACCEPTANCE and MAX_ACCEPTANCE where possible. 
+	 * This is done by repeatedly multiplying the proposalWidthControlVariable
+	 * by SPAN_MULTIPLIER until the acceptance falls within the desired range.
+	 */
+	public static final double SPAN_MULTIPLIER = 0.7;
+	/**
+	 * During the burnin, the proposalWidthControlVariable for all McmcMove objects
+	 * is adjusted (if <code>McmcMove.autoTune=true</code>) in order to ensure that the average 
+	 * acceptance rate is between MIN_ACCEPTANCE and MAX_ACCEPTANCE where possible. 
+	 * This is done by repeatedly multiplying the proposalWidthControlVariable
+	 * by SPAN_MULTIPLIER until the acceptance falls within the desired range.
+	 */
+	public static final double MIN_ACCEPTANCE = 0.2;
+	// Put the minimum a bit higher than we want it to be
+	// because as the parameters converge the acceptance rate
+	// typically goes down
+	/**
+	 * During the burnin, the proposalWidthControlVariable for all continuous parameters
+	 * is adjusted in order to ensure that the average acceptance rate is between 
+	 * MIN_ACCEPTANCE and MAX_ACCEPTANCE where possible. 
+	 * This is done by repeatedly multiplying the proposalWidthControlVariable
+	 * by SPAN_MULTIPLIER until the acceptance falls within the desired range.
+	 */
+	public static final double MAX_ACCEPTANCE = 0.4;
+	
+	
+	/** 
+	 * @param x
+	 * @param shape
+	 * @param rate
+	 * @return The unnormalised log density of Gamma(x | shape, rate)
+	 */
+	public static double logGammaDensity(double x, double shape, double rate) {
+       if (x < 0) {
+            return Double.NEGATIVE_INFINITY;
+       }
+       return (shape-1) * FastMath.log(x) - rate * x;
+    }
 }
 
