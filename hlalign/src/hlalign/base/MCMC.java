@@ -1,7 +1,5 @@
 package hlalign.base;
 
-import java.util.ArrayList;
-
 import org.apache.commons.math3.linear.Array2DRowRealMatrix;
 import org.apache.commons.math3.linear.RealMatrix;
 import org.apache.commons.math3.linear.RealVector;
@@ -30,7 +28,8 @@ public class MCMC {
 	Alignment[] align;
 	// int[][] alignArray;
 	Structure structure;
-	McmcMove[] moves;
+	public McmcMove[] moves;
+	public boolean burnin = true;
 	
 	public MCMC(int b, int n, DataReader dr, String[] pnames){
 		B = b;
@@ -178,6 +177,14 @@ public class MCMC {
 	}
 	
 	public void deterministicScan(){
+		// burn-in
+		for(int i = 0; i < B; i++){
+			for(int j = 0; j < moves.length; j++)
+				moves[j].move(tree);
+			if(i % Utils.CHECK_PROPOSAL_WIDTHS == 0)
+				modifyProposalWidths();
+		}
+		
 		for(int i = 0; i < N; i++)
 			for(int j = 0; j < moves.length; j++)
 				moves[j].move(tree);
@@ -193,6 +200,25 @@ public class MCMC {
 	public void finishUp(){
 		System.out.println("Acceptance rates:");
 		for(int i = 0; i < moves.length; i++)
-			System.out.println(moves[i].name + ": " + moves[i].acceptanceRate() );			
+			System.out.println(moves[i].name + ": " + moves[i].acceptanceRate() );		
+		
+	}
+	
+	public void modifyProposalWidths() {
+		for (McmcMove m : moves) {
+			if (!m.autoTune) { continue; }
+			if (m.proposalCount > Utils.MIN_SAMPLES_FOR_ACC_ESTIMATE) {
+				if (m.acceptanceRate() < m.minAcceptance) {
+					m.proposalWidthControlVariable *= m.spanMultiplier;
+					m.proposalCount = 0;
+					m.acceptanceCount = 0;
+				}
+				else if (m.acceptanceRate() > m.maxAcceptance) {
+					m.proposalWidthControlVariable /= m.spanMultiplier;
+					m.proposalCount = 0;
+					m.acceptanceCount = 0;
+				}
+			}
+		}
 	}
 }

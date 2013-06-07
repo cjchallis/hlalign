@@ -13,6 +13,10 @@ public class Utils {
 	
 	public static double MIN_EDGE_LENGTH = .0001;
 	
+	public static int MIN_SAMPLES_FOR_ACC_ESTIMATE = 100;
+	
+	public static int CHECK_PROPOSAL_WIDTHS = 100;
+	
 	public static final double log0 = Double.NEGATIVE_INFINITY;
 	
 	public static double logAdd(double log_a, double log_b){

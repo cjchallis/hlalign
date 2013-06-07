@@ -1,5 +1,5 @@
 package hlalign;
-import hlalign.io.DataReader;
+import hlalign.io.*;
 import hlalign.base.MCMC;
 
 public class HLAlign {
@@ -23,8 +23,11 @@ public class HLAlign {
 		datareader.charToInt();
 		
 		
-		MCMC mcmc = new MCMC(1000, 1000, datareader, coordFiles);
+		MCMC mcmc = new MCMC(100, 100, datareader, coordFiles);
 		mcmc.run();
+		DataWriter datawriter = new DataWriter(mcmc);
+		datawriter.writeTraces();
+		
 		System.out.println("Done");
 	}
 }
