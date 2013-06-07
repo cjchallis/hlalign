@@ -1,5 +1,7 @@
 package hlalign.base;
 
+import java.util.ArrayList;
+
 import org.apache.commons.math3.linear.Array2DRowRealMatrix;
 import org.apache.commons.math3.linear.RealMatrix;
 import org.apache.commons.math3.linear.RealVector;
@@ -30,6 +32,7 @@ public class MCMC {
 	Structure structure;
 	public McmcMove[] moves;
 	public boolean burnin = true;
+	public ArrayList<Double> logLikeTrace;
 	
 	public MCMC(int b, int n, DataReader dr, String[] pnames){
 		B = b;
@@ -42,6 +45,7 @@ public class MCMC {
 		coords = dr.coords;
 		seqs = dr.seqs;
 		seqsInt = dr.seqsInt;
+		logLikeTrace = new ArrayList<Double>(0);
 		
 		for(int i = 0; i < coords.length; i++){
 			RealMatrix temp = new Array2DRowRealMatrix(coords[i]);
@@ -171,7 +175,7 @@ public class MCMC {
 		for(int i = 2; i < moves.length; i++){
 			GammaPrior edgePrior = new GammaPrior(1,1);
 			GammaProposal edgeProp = new GammaProposal(1,1);
-			moves[i] = new EdgeMove(this, i-2, edgePrior, edgeProp, "edge"+i);
+			moves[i] = new EdgeMove(this, i-2, edgePrior, edgeProp, "edge"+(i-2));
 		}
 			
 	}

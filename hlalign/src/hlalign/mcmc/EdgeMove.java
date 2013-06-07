@@ -70,9 +70,7 @@ public class EdgeMove extends ContinuousPositiveParameterMove {
 		return logProposalRatio;
 	}
 	public void updateLikelihood(Object externalState) {
-		if (param.get() >= minValue && param.get() < maxValue) {
-			owner.tree.calcML();
-		}
+		owner.setLogLike(owner.tree.calcML());
 	}
 	@Override
 	public void restoreState(Object externalState) {

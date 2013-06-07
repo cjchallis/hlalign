@@ -56,7 +56,9 @@ public abstract class McmcMove {
 	public abstract double logPriorDensity(Object externalState);
 	public abstract void updateLikelihood(Object externalState); 
 	public abstract void restoreState(Object externalState);
-	public void afterMove(Object externalState) { }
+	public void afterMove(Object externalState) {
+		owner.logLikeTrace.add(owner.getLogLike());
+	}
 
 	public boolean isParamChangeAccepted(double logProposalRatio) {
 		return getOwner().isParamChangeAccepted(logProposalRatio,this);
@@ -71,8 +73,14 @@ public abstract class McmcMove {
 		double logPropPriorRatio = -logPriorDensity(externalState);
 		logPropPriorRatio += proposal(externalState); 
 		logPropPriorRatio += logPriorDensity(externalState);
+		if(Utils.DEBUG)
+			System.out.println("Prior/Proposal ratio: " + logPropPriorRatio);
 		if (logPropPriorRatio != Double.NEGATIVE_INFINITY) {
+			if(Utils.DEBUG)
+				System.out.println("Old likelihood: " + owner.getLogLike());
 			updateLikelihood(externalState);
+			if(Utils.DEBUG)
+				System.out.println("New likelihood: " + owner.getLogLike());
 		}
 		if(isParamChangeAccepted(logPropPriorRatio)) {
 			acceptanceCount++;

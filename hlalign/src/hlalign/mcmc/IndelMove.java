@@ -44,10 +44,9 @@ public abstract class IndelMove extends ContinuousPositiveParameterMove {
 	public void copyState(Object externalState) {
 		super.copyState(externalState);
 	}
-
 	
 	public void updateLikelihood(Object externalState) {
-		owner.tree.calcML();
+		owner.setLogLike(owner.tree.calcML());
 	}
 	
 	@Override
