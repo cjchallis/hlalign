@@ -1,10 +1,11 @@
 package hlalign.base;
-import org.apache.commons.math3.linear.EigenDecomposition;
-import org.apache.commons.math3.linear.RealMatrix;
-import org.apache.commons.math3.linear.Array2DRowRealMatrix;
-import org.apache.commons.math3.linear.LUDecomposition;
 
-public class SubstitutionModel {
+import org.apache.commons.math3.linear.Array2DRowRealMatrix;
+import org.apache.commons.math3.linear.EigenDecomposition;
+import org.apache.commons.math3.linear.LUDecomposition;
+import org.apache.commons.math3.linear.RealMatrix;
+
+public class SubstitutionPIPModel {
 	public double[][] subQ; // substitution-only matrix, read from data
 	public double[][] Q;	// substitution-deletion matrix, calculate from subQ and mu
 	
@@ -14,16 +15,15 @@ public class SubstitutionModel {
 	public EigenDecomposition eigen;
 	
 	public double[] pi;
-	public double mu;
-	public double l;
+	public double mu = .1;
+	public double l = 15;
 	
 	public char[] alphabet;
 	public String alphaString;
 	
 	int n;
 	
-	public SubstitutionModel(double[][] matrix, double[] e, double m){
-		mu = m;
+	public SubstitutionPIPModel(double[][] matrix, double[] e){
 		subQ = matrix;
 		pi = e;
 		Q = new double[subQ.length + 1][subQ.length + 1];
@@ -66,3 +66,4 @@ public class SubstitutionModel {
 		return subMatrix;
 	}
 }
+

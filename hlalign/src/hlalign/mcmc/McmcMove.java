@@ -1,5 +1,7 @@
 package hlalign.mcmc;
 
+import java.util.ArrayList;
+
 import hlalign.base.Utils;
 import hlalign.mcmc.ParameterInterface;
 import hlalign.mcmc.PriorDistribution;
@@ -12,8 +14,9 @@ public abstract class McmcMove {
 		return owner;
 	}
 	
+	protected double oldll;
+	public ArrayList<Double> sample;
 	protected PriorDistribution<? extends Object> prior;
-	
 	protected ParameterInterface param;
 	public ParameterInterface getParam() {
 		return param;
@@ -42,6 +45,10 @@ public abstract class McmcMove {
 		return (double) acceptanceCount / (double) proposalCount;
 	}
 	
+	public double getOldll(){
+		return oldll;
+	}
+	
 	public abstract void copyState(Object externalState);
 	public abstract double proposal(Object externalState); 
 	// Modifies variables and returns logProposalRatio
@@ -61,13 +68,13 @@ public abstract class McmcMove {
 		proposalCount++;
 		moveProposed = true;
 		copyState(externalState);
-		double logProposalRatio = -logPriorDensity(externalState);
-		logProposalRatio += proposal(externalState); 
-		logProposalRatio += logPriorDensity(externalState);
-		if (logProposalRatio != Double.NEGATIVE_INFINITY) {
+		double logPropPriorRatio = -logPriorDensity(externalState);
+		logPropPriorRatio += proposal(externalState); 
+		logPropPriorRatio += logPriorDensity(externalState);
+		if (logPropPriorRatio != Double.NEGATIVE_INFINITY) {
 			updateLikelihood(externalState);
 		}
-		if(isParamChangeAccepted(logProposalRatio)) {
+		if(isParamChangeAccepted(logPropPriorRatio)) {
 			acceptanceCount++;
 			lastMoveAccepted = true;
 		}

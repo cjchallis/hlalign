@@ -11,25 +11,26 @@ public abstract class IndelMove extends ContinuousPositiveParameterMove {
 	class EtaInterface implements ParameterInterface {
 		// eta = lambda / mu
 		public double get() {
-			return owner.l / owner.mu;
+			return owner.subModel.l / owner.subModel.mu;
 		}
 		public void set(double eta) {
-			double zeta = owner.l * owner.mu;
+			double zeta = owner.subModel.l * owner.subModel.mu;
 			// change l and mu, keeping zeta fixed
-			owner.l = Math.sqrt(eta * zeta);
-			owner.mu = Math.sqrt(zeta / eta);
+			owner.subModel.l = Math.sqrt(eta * zeta);
+			owner.subModel.mu = Math.sqrt(zeta / eta);
+			owner.subModel.updateDecomposition();
 		}
 	}
 	class ZetaInterface implements ParameterInterface {
 		// zeta = lambda * mu
 		public double get() {
-			return(owner.l * owner.mu);
+			return(owner.subModel.l * owner.subModel.mu);
 		}
 		public void set(double zeta) {
-			double eta = owner.l / owner.mu;
+			double eta = owner.subModel.l / owner.subModel.mu;
 			// change l and mu, keeping eta fixed
-			owner.l = Math.sqrt(eta * zeta);
-			owner.mu = Math.sqrt(zeta / eta);
+			owner.subModel.l = Math.sqrt(eta * zeta);
+			owner.subModel.mu = Math.sqrt(zeta / eta);
 		}
 	}
 	
@@ -46,16 +47,13 @@ public abstract class IndelMove extends ContinuousPositiveParameterMove {
 
 	
 	public void updateLikelihood(Object externalState) {
-		if (param.get() > minValue && param.get() < maxValue) {
-			owner.setLogLike(newll);
-		}
+		owner.tree.calcML();
 	}
 	
 	@Override
 	public void restoreState(Object externalState) {
 		super.restoreState(externalState);
 	}
-
 
 }
 

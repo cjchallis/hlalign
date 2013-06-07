@@ -11,6 +11,8 @@ public class Utils {
 	
 	public static final boolean DEBUG = false;
 	
+	public static double MIN_EDGE_LENGTH = .0001;
+	
 	public static final double log0 = Double.NEGATIVE_INFINITY;
 	
 	public static double logAdd(double log_a, double log_b){

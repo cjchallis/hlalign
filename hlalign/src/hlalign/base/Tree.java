@@ -41,8 +41,6 @@ public class Tree {
 
 	private final double INITIALEDGELENGTH = 0.1;
 
-	public double l, mu;
-
 	public double totalBranchLength;
 
 	Alignment align;
@@ -60,8 +58,6 @@ public class Tree {
 		}
 
 		title = "Tree";
-		mu = 1.0;
-		l = 2.0;
 		// currently hard-coded topology
 		initTopology();
 
@@ -507,19 +503,23 @@ public class Tree {
 	}
 
 	public double phiEmpty(double z, int k){
-		double nu = l * (totalBranchLength + 1.0 / mu);
+		double nu = owner.subModel.l * (totalBranchLength + 1.0 / owner.subModel.mu);
 		return -ArithmeticUtils.factorialLog(k) + k * Math.log(nu) + (z-1)*nu; 
 	}
 
 	public double calcML(){
+		// the next two initial calculations may not always be necessary (may just want to recalculate 
+		// these when branch lengths change)
+		
+		// calculate the total branch length on the tree
 		calcBranchLength();
-
+		// update the transition matrix for each branch
 		for(int i = 0; i < vertex.length; i++)
 			vertex[i].subMatrix = owner.subModel.calcSubMatrix(vertex[i].edgeLength);
 
 		for(int i = 0; i < vertex.length; i++){
 			vertex[i].calcSurvival();
-			System.out.println("Vertex " + i + " Survival: " + Math.exp(vertex[i].survival));
+			//System.out.println("Vertex " + i + " Survival: " + Math.exp(vertex[i].survival));
 			vertex[i].calcPrior();
 		}
 
@@ -537,32 +537,32 @@ public class Tree {
 
 			for(int i = 0; i < vertex.length; i++){
 				vertex[i].calcFelsSum();
-				System.out.println("Vertex " + i + " fv = " + Math.exp(vertex[i].felsSum));
+				//System.out.println("Vertex " + i + " fv = " + Math.exp(vertex[i].felsSum));
 			}
 			root.findDescChars(j);
 			root.checkAncestral(0);
-			for(int i = 0; i < vertex.length; i++)
-				System.out.println("fv" + i + " " + Math.exp(vertex[i].firstVertex));
+			/*for(int i = 0; i < vertex.length; i++)
+				System.out.println("fv" + i + " " + Math.exp(vertex[i].firstVertex));*/
 			double pc = Utils.log0;
 			for(int i = 0; i < vertex.length; i++){
-				System.out.println("pc: " + pc);
+				/*System.out.println("pc: " + pc);
 				System.out.println("prior: " + vertex[i].priorFirst);
-				System.out.println("firstV: " + vertex[i].firstVertex);
+				System.out.println("firstV: " + vertex[i].firstVertex);*/
 				pc = Utils.logAdd(pc, vertex[i].priorFirst + vertex[i].firstVertex);
 			}
 			if(j == align.matrix[0].length - 1){
 				double xx = phiEmpty(Math.exp(pc), align.matrix[0].length - 1); 
 				mll += xx;
-				System.out.println("p(c_0): " + Math.exp(pc));
-				System.out.println(xx);
+				//System.out.println("p(c_0): " + Math.exp(pc));
+				//System.out.println(xx);
 			}
 			else {
 				mll += pc;
-				System.out.println("p(c): " + pc);
+				//System.out.println("p(c): " + pc);
 			}
 		}
-		System.out.println("TADA!");
-		System.out.println("Marginal log likelihood: " + mll);
+		//System.out.println("TADA!");
+		//System.out.println("Marginal log likelihood: " + mll);
 		return mll;
 	}
 }

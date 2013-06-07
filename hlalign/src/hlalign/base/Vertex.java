@@ -141,7 +141,7 @@ public class Vertex {
     	if(this == owner.root)
     		survival = 0;
     	else
-    		survival = -Math.log(edgeLength) - Math.log(owner.owner.mu) + Math.log(1 - Math.exp(-edgeLength * owner.owner.mu));
+    		survival = -Math.log(edgeLength) - Math.log(owner.owner.subModel.mu) + Math.log(1 - Math.exp(-edgeLength * owner.owner.subModel.mu));
     }
     
     /**
@@ -191,9 +191,14 @@ public class Vertex {
      */
     public void calcPrior(){
     	if(this != owner.root)
-    		priorFirst = Math.log( edgeLength / (owner.totalBranchLength + 1.0 / owner.mu));
+    		priorFirst = Math.log( edgeLength / (owner.totalBranchLength + 1.0 / owner.owner.subModel.mu));
     	else
-    		priorFirst = Math.log( 1.0 / owner.mu / (owner.totalBranchLength + 1.0 / owner.mu));
+    		priorFirst = Math.log( 1.0 / owner.owner.subModel.mu / (owner.totalBranchLength + 1.0 / owner.owner.subModel.mu));
+    }
+    
+    public void edgeChangeUpdate(){
+    	subMatrix = owner.owner.subModel.calcSubMatrix(edgeLength);
+    	owner.calcBranchLength();
     }
 }
 

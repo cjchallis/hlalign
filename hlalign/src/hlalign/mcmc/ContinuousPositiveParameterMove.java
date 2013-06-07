@@ -1,5 +1,6 @@
 package hlalign.mcmc;
 
+import java.util.ArrayList;
 import hlalign.base.Tree;
 import hlalign.base.MCMC;
 import hlalign.mcmc.McmcMove;
@@ -14,9 +15,6 @@ public abstract class ContinuousPositiveParameterMove extends McmcMove {
 	private ProposalDistribution<Double> proposalDistribution;
 
 	protected double oldpar;
-	protected double oldll;
-	protected double newll;
-	
 	protected double minValue = 0.0;
 	protected double maxValue = Double.POSITIVE_INFINITY;
 	// If the proposal takes the parameter below/above these values, 
@@ -32,6 +30,7 @@ public abstract class ContinuousPositiveParameterMove extends McmcMove {
 		name = n;
 		proposalDistribution = prop;
 		autoTune = true;
+		sample = new ArrayList<Double>(0);
 	}
 	public void setMinValue(double x) {
 		minValue = x;
@@ -50,7 +49,9 @@ public abstract class ContinuousPositiveParameterMove extends McmcMove {
 		// externalState is not used for this move - only present for more complicated
 		// moves that require restoring more than a single parameter
 		proposalDistribution.updateProposal(proposalWidthControlVariable,param.get());
-		param.set(proposalDistribution.sample());
+		double par = proposalDistribution.sample(); 
+		param.set(par);
+		sample.add(par);
 		
 		if (param.get() < minValue || param.get() > maxValue) {
 			return(Double.NEGATIVE_INFINITY);
@@ -85,6 +86,8 @@ public abstract class ContinuousPositiveParameterMove extends McmcMove {
 	public abstract void updateLikelihood(Object externalState);
 	public void restoreState(Object externalState) {
 		param.set(oldpar);
+		//replace the most recent sample (proposed value) with oldpar
+		sample.set(sample.size()-1, oldpar);
 		owner.setLogLike(oldll);
 	}
 	public void updateProposal(double proposalWidthControlVariable, 

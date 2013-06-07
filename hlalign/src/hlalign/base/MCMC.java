@@ -1,5 +1,7 @@
 package hlalign.base;
 
+import java.util.ArrayList;
+
 import org.apache.commons.math3.linear.Array2DRowRealMatrix;
 import org.apache.commons.math3.linear.RealMatrix;
 import org.apache.commons.math3.linear.RealVector;
@@ -14,21 +16,17 @@ public class MCMC {
 	public int B;
 	public int N;
 	
-	public double mu;
-	double[] MU;
-	public double l;
-	double[] L;
 	double currLogLike;
 	
-	SubstitutionModel subModel;
+	public SubstitutionPIPModel subModel;
 	DataReader dataReader;
 	String[] names;
-	double[][][] coords;
-	char[][] seqs;
-	int[][] seqsInt;
-	double[] sigma2;
+	public double[][][] coords;
+	public char[][] seqs;
+	public int[][] seqsInt;
+	public double[] sigma2;
 	double[][] fullCovar;
-	Tree tree;
+	public Tree tree;
 	Alignment[] align;
 	// int[][] alignArray;
 	Structure structure;
@@ -60,6 +58,10 @@ public class MCMC {
 		createMoves();
 		
 		deterministicScan();
+		
+		printSamples();
+		
+		finishUp();
 		
 		/*
 		System.out.println("LL: " + structure.logLikelihood(tree));
@@ -131,8 +133,10 @@ public class MCMC {
 
 	}
 	
-	public boolean isParamChangeAccepted(double logProposal, McmcMove move){
-		return true;
+	public boolean isParamChangeAccepted(double logPropPriorRatio, McmcMove move){
+		double u = Math.log(Utils.generator.nextDouble());
+		double r = currLogLike - move.getOldll() + logPropPriorRatio;
+		return (r > u);
 	}
 	
 	public double getLogLike(){
@@ -143,10 +147,7 @@ public class MCMC {
 	}
 	
 	public void initialize(){
-		mu = 1;
-		l = 2;
-		
-		subModel = new SubstitutionModel(dataReader.subQ, dataReader.e, mu);
+		subModel = new SubstitutionPIPModel(dataReader.subQ, dataReader.e);
 				
 		structure = new Structure(coords, .1, 100, .1);
 		tree = new Tree(names, coords, seqsInt, this);
@@ -154,8 +155,9 @@ public class MCMC {
 		currLogLike = tree.calcML();
 	}
 	public void createMoves(){
-		// 2 moves - eta and zeta
-		moves = new McmcMove[2];
+		// 2 moves: eta and zeta
+		// 2n - 2 moves: branch lengths
+		moves = new McmcMove[2*names.length];
 		
 		GammaPrior etaPrior = new GammaPrior(1.5, .01);
 		GammaProposal etaProp = new GammaProposal(1, 1);
@@ -166,12 +168,31 @@ public class MCMC {
 		GammaProposal zetaProp = new GammaProposal(1, 1);
 		moves[1] = new ZetaMove(this, zetaPrior, zetaProp, "zeta");
 		moves[1].proposalWidthControlVariable = 1;
+		
+		for(int i = 2; i < moves.length; i++){
+			GammaPrior edgePrior = new GammaPrior(1,1);
+			GammaProposal edgeProp = new GammaProposal(1,1);
+			moves[i] = new EdgeMove(this, i-2, edgePrior, edgeProp, "edge"+i);
+		}
+			
 	}
 	
 	public void deterministicScan(){
-		for(int i = 0; i < 1; i++){
-			moves[0].move(tree);
-			moves[1].move(tree);
-		}
+		for(int i = 0; i < N; i++)
+			for(int j = 0; j < moves.length; j++)
+				moves[j].move(tree);
+	}
+	
+	public void printSamples(){
+		System.out.println("Print samples:");
+		System.out.println("N: " + N);
+		for(int i = 0; i < moves[0].sample.size(); i++)
+			System.out.println(moves[0].sample.get(i));
+	}
+	
+	public void finishUp(){
+		System.out.println("Acceptance rates:");
+		for(int i = 0; i < moves.length; i++)
+			System.out.println(moves[i].name + ": " + moves[i].acceptanceRate() );			
 	}
 }
