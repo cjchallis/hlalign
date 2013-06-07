@@ -30,7 +30,7 @@ public class MCMC {
 	Alignment[] align;
 	// int[][] alignArray;
 	Structure structure;
-	public McmcMove[] moves;
+	public ContinuousPositiveParameterMove[] scalarMoves;
 	public boolean burnin = true;
 	public ArrayList<Double> logLikeTrace;
 	
@@ -160,22 +160,22 @@ public class MCMC {
 	public void createMoves(){
 		// 2 moves: eta and zeta
 		// 2n - 2 moves: branch lengths
-		moves = new McmcMove[2*names.length];
+		scalarMoves = new ContinuousPositiveParameterMove[2*names.length];
 		
 		GammaPrior etaPrior = new GammaPrior(1.5, .01);
 		GammaProposal etaProp = new GammaProposal(1, 1);
-		moves[0] = new EtaMove(this, etaPrior, etaProp, "eta");
-		moves[0].proposalWidthControlVariable = 1;
+		scalarMoves[0] = new EtaMove(this, etaPrior, etaProp, "eta");
+		scalarMoves[0].proposalWidthControlVariable = 1;
 		
 		GammaPrior zetaPrior = new GammaPrior(1, 1);
 		GammaProposal zetaProp = new GammaProposal(1, 1);
-		moves[1] = new ZetaMove(this, zetaPrior, zetaProp, "zeta");
-		moves[1].proposalWidthControlVariable = 1;
+		scalarMoves[1] = new ZetaMove(this, zetaPrior, zetaProp, "zeta");
+		scalarMoves[1].proposalWidthControlVariable = 1;
 		
-		for(int i = 2; i < moves.length; i++){
+		for(int i = 2; i < scalarMoves.length; i++){
 			GammaPrior edgePrior = new GammaPrior(1,1);
 			GammaProposal edgeProp = new GammaProposal(1,1);
-			moves[i] = new EdgeMove(this, i-2, edgePrior, edgeProp, "edge"+(i-2));
+			scalarMoves[i] = new EdgeMove(this, i-2, edgePrior, edgeProp, "edge"+(i-2));
 		}
 			
 	}
@@ -183,33 +183,33 @@ public class MCMC {
 	public void deterministicScan(){
 		// burn-in
 		for(int i = 0; i < B; i++){
-			for(int j = 0; j < moves.length; j++)
-				moves[j].move(tree);
+			for(int j = 0; j < scalarMoves.length; j++)
+				scalarMoves[j].move(tree);
 			if(i % Utils.CHECK_PROPOSAL_WIDTHS == 0)
 				modifyProposalWidths();
 		}
 		
 		for(int i = 0; i < N; i++)
-			for(int j = 0; j < moves.length; j++)
-				moves[j].move(tree);
+			for(int j = 0; j < scalarMoves.length; j++)
+				scalarMoves[j].move(tree);
 	}
 	
 	public void printSamples(){
 		System.out.println("Print samples:");
 		System.out.println("N: " + N);
-		for(int i = 0; i < moves[0].sample.size(); i++)
-			System.out.println(moves[0].sample.get(i));
+		for(int i = 0; i < scalarMoves[0].sample.size(); i++)
+			System.out.println(scalarMoves[0].sample.get(i));
 	}
 	
 	public void finishUp(){
 		System.out.println("Acceptance rates:");
-		for(int i = 0; i < moves.length; i++)
-			System.out.println(moves[i].name + ": " + moves[i].acceptanceRate() );		
+		for(int i = 0; i < scalarMoves.length; i++)
+			System.out.println(scalarMoves[i].name + ": " + scalarMoves[i].acceptanceRate() );		
 		
 	}
 	
 	public void modifyProposalWidths() {
-		for (McmcMove m : moves) {
+		for (McmcMove m : scalarMoves) {
 			if (!m.autoTune) { continue; }
 			if (m.proposalCount > Utils.MIN_SAMPLES_FOR_ACC_ESTIMATE) {
 				if (m.acceptanceRate() < m.minAcceptance) {

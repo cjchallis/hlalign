@@ -23,7 +23,7 @@ public class HLAlign {
 		datareader.charToInt();
 		
 		
-		MCMC mcmc = new MCMC(1000, 1000, datareader, coordFiles);
+		MCMC mcmc = new MCMC(500, 500, datareader, coordFiles);
 		mcmc.run();
 		DataWriter datawriter = new DataWriter(mcmc);
 		datawriter.writeTraces();

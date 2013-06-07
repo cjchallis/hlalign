@@ -20,14 +20,14 @@ public class DataWriter {
 		try{
 			outputFile = new FileWriter("pipTraces.txt");
 			int maxLength = 0;
-			for (McmcMove mcmcMove : owner.moves) {
+			for (McmcMove mcmcMove : owner.scalarMoves) {
 				outputFile.write(mcmcMove.name+"\t");
 				maxLength = mcmcMove.sample.size() > maxLength ? mcmcMove.sample.size() : maxLength; 
 			}	
 			outputFile.write("\n");
 			System.out.println(maxLength);
 			for(int i = 0; i < maxLength; i++){
-				for (McmcMove mcmcMove : owner.moves) {
+				for (McmcMove mcmcMove : owner.scalarMoves) {
 					if(mcmcMove.sample.size() > i-2)
 						outputFile.write(String.format("%.3f", mcmcMove.sample.get(i))+"\t");
 					else
