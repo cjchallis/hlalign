@@ -31,6 +31,7 @@ public class MCMC {
 	// int[][] alignArray;
 	Structure structure;
 	public ContinuousPositiveParameterMove[] scalarMoves;
+	public McmcMove[] specialMoves;
 	public boolean burnin = true;
 	public ArrayList<Double> logLikeTrace;
 	
@@ -177,6 +178,10 @@ public class MCMC {
 			GammaProposal edgeProp = new GammaProposal(1,1);
 			scalarMoves[i] = new EdgeMove(this, i-2, edgePrior, edgeProp, "edge"+(i-2));
 		}
+		
+		// topology move
+		specialMoves = new McmcMove[1];
+		specialMoves[0] = new NearestNeighborInterchange(this, "NNI");
 			
 	}
 	
@@ -187,11 +192,16 @@ public class MCMC {
 				scalarMoves[j].move(tree);
 			if(i % Utils.CHECK_PROPOSAL_WIDTHS == 0)
 				modifyProposalWidths();
+			for(int j = 0; j < specialMoves.length; j++)
+				specialMoves[j].move(tree);
 		}
 		
-		for(int i = 0; i < N; i++)
+		for(int i = 0; i < N; i++){
 			for(int j = 0; j < scalarMoves.length; j++)
 				scalarMoves[j].move(tree);
+			for(int j = 0; j < specialMoves.length; j++)
+				specialMoves[j].move(tree);
+		}
 	}
 	
 	public void printSamples(){
@@ -205,6 +215,8 @@ public class MCMC {
 		System.out.println("Acceptance rates:");
 		for(int i = 0; i < scalarMoves.length; i++)
 			System.out.println(scalarMoves[i].name + ": " + scalarMoves[i].acceptanceRate() );		
+		for(int i = 0; i < specialMoves.length; i++)
+			System.out.println(specialMoves[i].name + ": " + specialMoves[i].acceptanceRate() );
 		
 	}
 	

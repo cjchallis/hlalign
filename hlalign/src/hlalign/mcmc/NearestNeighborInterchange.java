@@ -1,5 +1,6 @@
 package hlalign.mcmc;
 
+import hlalign.base.MCMC;
 import hlalign.base.Tree;
 import hlalign.base.Utils;
 import hlalign.base.Vertex;
@@ -8,7 +9,13 @@ public class NearestNeighborInterchange extends McmcMove{
 	
 	// remember the index of vertex selected and which of left and right was swapped
 	public int index, which;
-	Tree tree = owner.tree;
+	Tree tree;
+
+	public NearestNeighborInterchange(MCMC mcmc, String n){
+		owner = mcmc;
+		name = n;
+		tree = owner.tree;
+	}
 	
 	@Override
 	public void copyState(Object externalState) {
