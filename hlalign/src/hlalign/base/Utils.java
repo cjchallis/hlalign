@@ -9,7 +9,7 @@ import org.apache.commons.math3.util.FastMath;
 
 public class Utils {
 	
-	public static final boolean DEBUG = false;
+	public static final boolean DEBUG = true;
 	
 	public static double MIN_EDGE_LENGTH = .0001;
 	

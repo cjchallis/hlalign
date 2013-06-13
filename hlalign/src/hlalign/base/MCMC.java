@@ -63,7 +63,7 @@ public class MCMC {
 		
 		deterministicScan();
 		
-		printSamples();
+		// printSamples();
 		
 		finishUp();
 		
@@ -180,14 +180,17 @@ public class MCMC {
 		}
 		
 		// topology move
-		specialMoves = new McmcMove[1];
+		specialMoves = new McmcMove[2];
 		specialMoves[0] = new NearestNeighborInterchange(this, "NNI");
+		specialMoves[1] = new StochasticNNI(this, "stNNI");
 			
 	}
 	
 	public void deterministicScan(){
 		// burn-in
 		for(int i = 0; i < B; i++){
+			if(i % 500 == 0)
+				System.out.println(i);
 			for(int j = 0; j < scalarMoves.length; j++)
 				scalarMoves[j].move(tree);
 			if(i % Utils.CHECK_PROPOSAL_WIDTHS == 0)
@@ -197,6 +200,8 @@ public class MCMC {
 		}
 		
 		for(int i = 0; i < N; i++){
+			if(i % 500 == 0)
+				System.out.println(i);
 			for(int j = 0; j < scalarMoves.length; j++)
 				scalarMoves[j].move(tree);
 			for(int j = 0; j < specialMoves.length; j++)

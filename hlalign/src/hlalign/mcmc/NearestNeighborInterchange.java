@@ -52,7 +52,7 @@ public class NearestNeighborInterchange extends McmcMove{
 		 *	We will always swap brother with either right or left, this grandpa
 		 *	need not be identified and we only need to worry about the root on p--v
 		 */
-		
+
 		Vertex vert = tree.vertex[index];
 		Vertex left = vert.left;
 		Vertex right = vert.right;

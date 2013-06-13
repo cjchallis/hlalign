@@ -128,16 +128,21 @@ public class Tree {
 	}
 
 	public void initAlign(){
-
+		
 		// old hlalign code uses progressive pairwise structural alignment for initialization
 		parentAlign(root);
 
 		align = createMultAlign(root);
 		alignArray = alignToArray(align.first);		
-
+		
 
 		/* for PIP code convert 0-1 alignment matrix to matrix of character indices */
-	
+		
+		alignArray = new int[4][20];
+		for(int i = 0; i < alignArray.length; i++)
+			for(int j = 0; j < alignArray[0].length; j++)
+				alignArray[i][j] = 1;
+		
 		/* find all-gap columns in leaf alignment */
 		ArrayList<Integer> empties = new ArrayList<Integer>(0);
 		for(int j = 0; j < alignArray[0].length; j++){
@@ -349,7 +354,7 @@ public class Tree {
 
 	/** Recursive function to print across the tree.  Currently prints only vertex indices */
 	public void printTree(Vertex v){
-		System.out.println(v.index);
+		System.out.println(v.index + ": " + v.edgeLength);
 		if(v.left != null){
 			printTree(v.left);
 			printTree(v.right);
